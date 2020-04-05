@@ -22,6 +22,7 @@
             name : highScore
             type : INTEGER
             definition: 'MAX(score)'
+            readAccess : Prefab.Role.All
             }
         ]
         dimensions : [

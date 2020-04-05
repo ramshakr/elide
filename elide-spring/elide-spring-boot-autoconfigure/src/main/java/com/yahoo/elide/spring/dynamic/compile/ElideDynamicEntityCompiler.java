@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.spring.dynamic.config;
+package com.yahoo.elide.spring.dynamic.compile;
 
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideSecurityConfig;
 import com.yahoo.elide.contrib.dynamicconfighelpers.model.ElideTableConfig;
@@ -69,25 +69,20 @@ public class ElideDynamicEntityCompiler {
         }
     }
 
-    public void compile(String path) {
+    public void compile(String path) throws Exception {
 
-        try {
-
-            for (Map.Entry<String, String> tablePojo : tableClasses.entrySet()) {
-                log.info("key: " + tablePojo.getKey() + ", value: " + tablePojo.getValue());
-                compiler.addSource(PACKAGE_NAME + tablePojo.getKey(), tablePojo.getValue());
-            }
-
-            for (Map.Entry<String, String> secPojo : securityClasses.entrySet()) {
-                log.info("key: " + secPojo.getKey() + ", value: " + secPojo.getValue());
-                compiler.addSource(PACKAGE_NAME + secPojo.getKey(), secPojo.getValue());
-            }
-
-            compiledObjects = compiler.compileAll();
-
-        } catch (Exception e) {
-            log.error("Unable to compile dynamic classes");
+        for (Map.Entry<String, String> tablePojo : tableClasses.entrySet()) {
+            log.info("key: " + tablePojo.getKey() + ", value: " + tablePojo.getValue());
+            compiler.addSource(PACKAGE_NAME + tablePojo.getKey(), tablePojo.getValue());
         }
+
+        for (Map.Entry<String, String> secPojo : securityClasses.entrySet()) {
+            log.info("key: " + secPojo.getKey() + ", value: " + secPojo.getValue());
+            compiler.addSource(PACKAGE_NAME + secPojo.getKey(), secPojo.getValue());
+        }
+
+        compiledObjects = compiler.compileAll();
+
     }
 
     public ClassLoader getClassLoader() {
