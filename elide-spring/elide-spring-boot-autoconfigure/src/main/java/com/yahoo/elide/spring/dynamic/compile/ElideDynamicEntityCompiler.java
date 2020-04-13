@@ -81,7 +81,11 @@ public class ElideDynamicEntityCompiler {
             compiler.addSource(PACKAGE_NAME + secPojo.getKey(), secPojo.getValue());
         }
 
-        compiledObjects = compiler.compileAll();
+        try {
+            compiledObjects = compiler.compileAll();
+        } catch (Exception e) {
+            log.error("Unable to compile dynamic classes in memory ");
+        }
 
     }
 

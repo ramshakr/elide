@@ -20,7 +20,7 @@
         measures : [
             {
             name : highScore
-            type : "{{measure_type}}"
+            type : "INTEGER"
             definition: 'MAX(score)'
             }
         ]
@@ -28,7 +28,7 @@
             {
                 name : countryCode
                 type : TEXT
-                definition : playerCountry.isoCode
+                definition : '{{playerCountry.isoCode}}'
             },
             {
                 name : createdOn

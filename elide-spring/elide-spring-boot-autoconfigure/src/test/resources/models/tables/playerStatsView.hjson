@@ -1,8 +1,7 @@
 {
     tables: [{
-        name: PlayerStats
-        table: player_stats
-        schema: gamedb
+        name: PlayerStatsView
+        table: PlayerStats
         description:
         '''
         A long description
@@ -12,36 +11,42 @@
         joins: [
             {
                 name: playerCountry
-                to: string
+                to: PlayerCountryView
                 type: toOne
-                definition: '${to}.id = ${from}.country_id'
+                definition: '%join.id = %from.countryId'
             }
         ]
         measures : [
             {
             name : highScore
             type : INTEGER
-            definition: 'MAX(score)'
+            definition: 'MAX(highScore)'
             readAccess : Prefab.Role.All
             }
         ]
         dimensions : [
             {
+                name : name
+                type : TEXT
+                readAccess : Prefab.Role.All
+                definition : name
+            },
+            {
                 name : countryCode
                 type : TEXT
                 readAccess : Prefab.Role.All
-                definition : playerCountry.isoCode
+                definition : '{{playerCountry.isoCode}}'
             },
             {
                 name : createdOn
                 type : TIME
                 readAccess : Prefab.Role.All
-                definition : create_on
+                definition : createdOn
                 grains: [
                 {
                     grain :  MONTH
                     sql :  '''
-                    PARSEDATETIME(FORMATDATETIME(${column}, 'yyyy-MM-01'), 'yyyy-MM-dd')
+                    PARSEDATETIME(FORMATDATETIME(%s, 'yyyy-MM-01'), 'yyyy-MM-dd')
                     '''
                 }
                 ]
