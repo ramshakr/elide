@@ -44,7 +44,7 @@ public class DynamicConfigTest extends IntegrationTest {
      */
 
     @Test
-    public void jsonApiGetViewTest() throws InterruptedException {
+    public void jsonApiGetViewTest() {
         when()
                 .get("/json/PlayerStatsView")
                 .then()
@@ -103,7 +103,7 @@ public class DynamicConfigTest extends IntegrationTest {
             statements = "INSERT INTO PlayerStats (name,countryId,createdOn) VALUES\n"
                     + "\t\t('SaniaMirza','2','2000-10-01');")
     @Test
-    public void jsonApiPostGetViewTest() throws InterruptedException {
+    public void jsonApiPostGetViewTest() {
         when()
                 .get("/json/PlayerStatsView")
                 .then()

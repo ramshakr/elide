@@ -57,7 +57,10 @@ public class ElideDynamicPersistenceUnit implements PersistenceUnitInfo {
         return false;
     }
 
-    public void addTransformer(ClassTransformer classTransformer) { }
+    @Override
+    public void addTransformer(ClassTransformer classTransformer) {
+        //Not implemented
+    }
 
     public ClassLoader getClassLoader() {
         return classLoader;
