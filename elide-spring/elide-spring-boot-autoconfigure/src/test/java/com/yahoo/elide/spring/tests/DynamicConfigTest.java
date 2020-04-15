@@ -16,6 +16,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 import com.yahoo.elide.core.HttpStatus;
@@ -45,7 +46,7 @@ public class DynamicConfigTest extends IntegrationTest {
 
     @Test
     public void jsonApiGetViewTest() {
-        when()
+        String apiGetViewRequest = when()
                 .get("/json/PlayerStatsView")
                 .then()
                 .body(equalTo(
@@ -62,12 +63,14 @@ public class DynamicConfigTest extends IntegrationTest {
                                 )
                         ).toJSON())
                 )
-                .statusCode(HttpStatus.SC_OK);
+                .statusCode(HttpStatus.SC_OK).extract().response().asString();
+        String apiGetViewExpected = "{\"data\":[{\"type\":\"PlayerStatsView\",\"id\":\"0\",\"attributes\":{\"countryCode\":\"USA\",\"createdOn\":\"2000-10-01T04:00Z\",\"highScore\":null,\"name\":\"SerenaWilliams\"}}]}";
+        assertEquals(apiGetViewRequest, apiGetViewExpected);
     }
 
     @Test
     public void jsonApiPostViewTest() {
-        given()
+        String apiPostViewRequest = given()
                 .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
                 .body(
                         datum(
@@ -96,7 +99,9 @@ public class DynamicConfigTest extends IntegrationTest {
                                 )
                         )
                 ).toJSON()))
-                .statusCode(HttpStatus.SC_CREATED);
+                .statusCode(HttpStatus.SC_CREATED).extract().response().asString();
+        String apiPostViewExpected = "{\"data\":{\"type\":\"playerStats\",\"id\":\"SaniaMirza\",\"attributes\":{\"countryId\":\"1\",\"createdOn\":\"2002-03-01T04:00Z\",\"highScore\":null}}}";
+        assertEquals(apiPostViewRequest, apiPostViewExpected);
     }
     @SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
@@ -104,12 +109,14 @@ public class DynamicConfigTest extends IntegrationTest {
                     + "\t\t('SaniaMirza','2','2000-10-01');")
     @Test
     public void jsonApiPostGetViewTest() {
-        when()
+        String apiPostGetViewRequest = when()
                 .get("/json/PlayerStatsView")
                 .then()
                 .body("data.id", hasItems("1"))
                 .body("data.attributes.name", hasItems("SaniaMirza", "SerenaWilliams"))
                 .body("data.attributes.countryCode", hasItems("USA", "IND"))
-                .statusCode(HttpStatus.SC_OK);
+                .statusCode(HttpStatus.SC_OK).extract().response().asString();
+        String apiPostGetViewExpected = "{\"data\":[{\"type\":\"PlayerStatsView\",\"id\":\"0\",\"attributes\":{\"countryCode\":\"IND\",\"createdOn\":\"2000-10-01T04:00Z\",\"highScore\":null,\"name\":\"SaniaMirza\"}},{\"type\":\"PlayerStatsView\",\"id\":\"1\",\"attributes\":{\"countryCode\":\"USA\",\"createdOn\":\"2000-10-01T04:00Z\",\"highScore\":null,\"name\":\"SerenaWilliams\"}}]}";
+        assertEquals(apiPostGetViewRequest, apiPostGetViewExpected);
     }
 }
