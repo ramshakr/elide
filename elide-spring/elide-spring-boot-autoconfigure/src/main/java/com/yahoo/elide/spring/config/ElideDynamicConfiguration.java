@@ -17,7 +17,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateProperties;
 import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -48,10 +47,22 @@ import javax.sql.DataSource;
 @ConditionalOnExpression("${elide.dynamic-config.enabled:false}")
 public class ElideDynamicConfiguration {
 
+    public static final String HIBERNATE_DDL_AUTO = "hibernate.hbm2ddl.auto";
+
+    /**
+     * Configure factory bean to create EntityManagerFactory for Dynamic Configuration.
+     * @param source :DataSource for JPA
+     * @param jpaProperties : JPA Config Properties
+     * @param hibernateProperties : Hibernate Config Properties
+     * @param dynamicCompiler : ElideDynamicEntityCompiler
+     * @return LocalContainerEntityManagerFactoryBean bean
+     */
     @Bean
-    public LocalContainerEntityManagerFactoryBean entityManagerFactory (EntityManagerFactoryBuilder builder,
-            DataSource source, JpaProperties jpaProperties, HibernateProperties hibernateProperties,
-            ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler, ElideConfigProperties configProperties) {
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory (
+            DataSource source,
+            JpaProperties jpaProperties,
+            HibernateProperties hibernateProperties,
+            ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler) {
 
         try {
 
@@ -71,8 +82,8 @@ public class ElideDynamicConfiguration {
             String hibernateGetDDLAuto = hibernateProperties.getDdlAuto();
 
             //Set the relevant property in JPA corresponding to Hibernate Property Value
-            if (jpaPropMap.get("hibernate.hbm2ddl.auto") == null && hibernateGetDDLAuto != null) {
-               jpaPropMap.put("hibernate.hbm2ddl.auto", hibernateGetDDLAuto);
+            if (jpaPropMap.get(HIBERNATE_DDL_AUTO) == null && hibernateGetDDLAuto != null) {
+               jpaPropMap.put(HIBERNATE_DDL_AUTO, hibernateGetDDLAuto);
              }
 
             ElideDynamicEntityCompiler compiler = dynamicCompiler.getIfAvailable();

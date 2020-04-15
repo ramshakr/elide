@@ -21,6 +21,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+/**
+ * Compiles dynamic model pojos generated from hjson files.
+ *
+ */
 @Slf4j
 public class ElideDynamicEntityCompiler {
 
@@ -41,6 +45,10 @@ public class ElideDynamicEntityCompiler {
     Map<String, String> tableClasses = new HashMap<String, String>();
     Map<String, String> securityClasses = new HashMap<String, String>();
 
+    /**
+     * Parse dynamic config path.
+     * @param path : Dynamic config hjsons root location
+     */
     public ElideDynamicEntityCompiler(String path) {
 
         try {
@@ -69,15 +77,19 @@ public class ElideDynamicEntityCompiler {
         }
     }
 
+    /**
+     * Compile table and security model pojos.
+     * @param path: Dynamic config hjsons root location
+     */
     public void compile(String path) throws Exception {
 
         for (Map.Entry<String, String> tablePojo : tableClasses.entrySet()) {
-            log.info("key: " + tablePojo.getKey() + ", value: " + tablePojo.getValue());
+            log.debug("key: " + tablePojo.getKey() + ", value: " + tablePojo.getValue());
             compiler.addSource(PACKAGE_NAME + tablePojo.getKey(), tablePojo.getValue());
         }
 
         for (Map.Entry<String, String> secPojo : securityClasses.entrySet()) {
-            log.info("key: " + secPojo.getKey() + ", value: " + secPojo.getValue());
+            log.debug("key: " + secPojo.getKey() + ", value: " + secPojo.getValue());
             compiler.addSource(PACKAGE_NAME + secPojo.getKey(), secPojo.getValue());
         }
 

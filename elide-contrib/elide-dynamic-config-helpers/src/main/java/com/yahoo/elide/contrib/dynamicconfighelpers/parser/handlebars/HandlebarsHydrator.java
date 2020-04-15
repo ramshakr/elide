@@ -92,7 +92,7 @@ public class HandlebarsHydrator {
         HandlebarsHelper helper = new HandlebarsHelper();
         handlebars.registerHelpers(ConditionalHelpers.class);
         handlebars.registerHelpers(helper);
-        Template template = handlebars.compile("security");
+        Template template = handlebars.compile("security", HANDLEBAR_START_DELIMITER, HANDLEBAR_END_DELIMITER);
 
         for (String role : security.getRoles()) {
             securityClasses.put(SECURITY_CLASS_PREFIX + helper.titleCaseRemoveSpaces(role), template.apply(role));

@@ -18,6 +18,9 @@ import javax.persistence.spi.PersistenceUnitInfo;
 import javax.persistence.spi.PersistenceUnitTransactionType;
 import javax.sql.DataSource;
 
+/**
+ * Persistent Unit implementation for Dynamic Configuration.
+ */
 @Data
 public class ElideDynamicPersistenceUnit implements PersistenceUnitInfo {
 

@@ -25,23 +25,24 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 
 /**
- * Example functional test.
+ * Dynamic Configuration functional test.
  */
-
+@SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
+@Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+        statements = "INSERT INTO PlayerStats (name,countryId,createdOn) VALUES\n"
+                + "\t\t('SerenaWilliams','1','2000-10-01');"
+                + "INSERT INTO PlayerCountry (id,isoCode) VALUES\n"
+                + "\t\t('2','IND');"
+                + "INSERT INTO PlayerCountry (id,isoCode) VALUES\n"
+                + "\t\t('1','USA');")
+@Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
+statements = "DELETE FROM PlayerStats; DELETE FROM PlayerCountry;")
 public class DynamicConfigTest extends IntegrationTest {
     /**
      * This test demonstrates an example test using the JSON-API DSL.
      * @throws InterruptedException
      */
 
-    @SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
-    @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
-            statements = "INSERT INTO PlayerStats (name,countryId,createdOn) VALUES\n"
-                    + "\t\t('SerenaWilliams','1','2000-10-01');"
-                    + "INSERT INTO PlayerCountry (id,isoCode) VALUES\n"
-                    + "\t\t('1','USA');")
-    @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-            statements = "DELETE FROM PlayerStats; DELETE FROM PlayerCountry;")
     @Test
     public void jsonApiGetTestView() throws InterruptedException {
         when()
@@ -63,14 +64,7 @@ public class DynamicConfigTest extends IntegrationTest {
                 )
                 .statusCode(HttpStatus.SC_OK);
     }
-    @SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
-    @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
-            statements = "INSERT INTO PlayerStats (name,countryId,createdOn) VALUES\n"
-                    + "\t\t('SerenaWilliams','1','2000-10-01');"
-                    + "INSERT INTO PlayerCountry (id,isoCode) VALUES\n"
-                    + "\t\t('1','USA');")
-    @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-            statements = "DELETE FROM PlayerStats; DELETE FROM PlayerCountry;")
+
     @Test
     public void jsonApiPostTestView() {
         given()
@@ -107,15 +101,7 @@ public class DynamicConfigTest extends IntegrationTest {
     @SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
             statements = "INSERT INTO PlayerStats (name,countryId,createdOn) VALUES\n"
-                    + "\t\t('SaniaMirza','2','2000-10-01');"
-                    + "INSERT INTO PlayerStats (name,countryId,createdOn) VALUES\n"
-                    + "\t\t('SerenaWilliams','1','2000-10-01');"
-                    + "INSERT INTO PlayerCountry (id,isoCode) VALUES\n"
-                    + "\t\t('2','IND');"
-                    + "INSERT INTO PlayerCountry (id,isoCode) VALUES\n"
-                    + "\t\t('1','USA');")
-    @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD,
-            statements = "DELETE FROM PlayerStats; DELETE FROM PlayerCountry;")
+                    + "\t\t('SaniaMirza','2','2000-10-01');")
     @Test
     public void jsonApiPostGetTestView() throws InterruptedException {
         when()

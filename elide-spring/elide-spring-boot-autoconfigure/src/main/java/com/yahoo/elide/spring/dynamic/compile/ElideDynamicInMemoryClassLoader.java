@@ -14,6 +14,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Set;
 
+/**
+ * ClassLoader for dynamic configuration.
+ */
 @Slf4j
 @Data
 @AllArgsConstructor
