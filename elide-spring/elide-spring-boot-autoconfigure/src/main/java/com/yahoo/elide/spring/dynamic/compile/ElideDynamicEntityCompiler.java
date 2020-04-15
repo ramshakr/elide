@@ -33,17 +33,17 @@ public class ElideDynamicEntityCompiler {
     public static final String PACKAGE_NAME = "com.yahoo.elide.contrib.dynamicconfig.model.";
     private Map<String, Class<?>> compiledObjects;
 
-    InMemoryJavaCompiler compiler = InMemoryJavaCompiler.newInstance();
+    private InMemoryJavaCompiler compiler = InMemoryJavaCompiler.newInstance();
 
-    HandlebarsHydrator hydrator = new HandlebarsHydrator();
+    private HandlebarsHydrator hydrator = new HandlebarsHydrator();
 
-    ElideConfigParser elideConfigParser = new ElideConfigParser();
+    private ElideConfigParser elideConfigParser = new ElideConfigParser();
 
-    ElideTableConfig tableConfig = new ElideTableConfig();
+    private ElideTableConfig tableConfig = new ElideTableConfig();
 
-    ElideSecurityConfig securityConfig = new ElideSecurityConfig();
-    Map<String, String> tableClasses = new HashMap<String, String>();
-    Map<String, String> securityClasses = new HashMap<String, String>();
+    private ElideSecurityConfig securityConfig = new ElideSecurityConfig();
+    private Map<String, String> tableClasses = new HashMap<String, String>();
+    private Map<String, String> securityClasses = new HashMap<String, String>();
 
     /**
      * Parse dynamic config path.

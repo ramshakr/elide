@@ -44,7 +44,7 @@ public class DynamicConfigTest extends IntegrationTest {
      */
 
     @Test
-    public void jsonApiGetTestView() throws InterruptedException {
+    public void jsonApiGetViewTest() throws InterruptedException {
         when()
                 .get("/json/PlayerStatsView")
                 .then()
@@ -66,7 +66,7 @@ public class DynamicConfigTest extends IntegrationTest {
     }
 
     @Test
-    public void jsonApiPostTestView() {
+    public void jsonApiPostViewTest() {
         given()
                 .contentType(JsonApiController.JSON_API_CONTENT_TYPE)
                 .body(
@@ -103,7 +103,7 @@ public class DynamicConfigTest extends IntegrationTest {
             statements = "INSERT INTO PlayerStats (name,countryId,createdOn) VALUES\n"
                     + "\t\t('SaniaMirza','2','2000-10-01');")
     @Test
-    public void jsonApiPostGetTestView() throws InterruptedException {
+    public void jsonApiPostGetViewTest() throws InterruptedException {
         when()
                 .get("/json/PlayerStatsView")
                 .then()

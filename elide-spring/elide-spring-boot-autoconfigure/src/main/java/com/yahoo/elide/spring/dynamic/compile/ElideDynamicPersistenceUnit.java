@@ -24,15 +24,6 @@ import javax.sql.DataSource;
 @Data
 public class ElideDynamicPersistenceUnit implements PersistenceUnitInfo {
 
-    public ElideDynamicPersistenceUnit(String persistenceUnitName,
-    List<String> managedClassNames, Properties properties, ClassLoader loader) {
-        this.persistenceUnitName = persistenceUnitName;
-        this.managedClassNames = managedClassNames;
-        this.properties = properties;
-        this.classLoader = loader;
-        this.newTempClassLoader = loader;
-    }
-
     private String persistenceUnitName;
     private String persistenceProviderClassName;
     private PersistenceUnitTransactionType transactionType;
@@ -48,6 +39,18 @@ public class ElideDynamicPersistenceUnit implements PersistenceUnitInfo {
     private String persistenceXMLSchemaVersion;
     private ClassLoader classLoader;
     private ClassLoader newTempClassLoader;
+
+    public ElideDynamicPersistenceUnit(
+            String persistenceUnitName,
+            List<String> managedClassNames,
+            Properties properties,
+            ClassLoader loader) {
+        this.persistenceUnitName = persistenceUnitName;
+        this.managedClassNames = managedClassNames;
+        this.properties = properties;
+        this.classLoader = loader;
+        this.newTempClassLoader = loader;
+    }
 
     @Override
     public boolean excludeUnlistedClasses() {
