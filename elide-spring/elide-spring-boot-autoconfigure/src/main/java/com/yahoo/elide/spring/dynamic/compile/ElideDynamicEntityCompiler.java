@@ -35,13 +35,6 @@ public class ElideDynamicEntityCompiler {
 
     private InMemoryJavaCompiler compiler = InMemoryJavaCompiler.newInstance();
 
-    private HandlebarsHydrator hydrator = new HandlebarsHydrator();
-
-    private ElideConfigParser elideConfigParser = new ElideConfigParser();
-
-    private ElideTableConfig tableConfig = new ElideTableConfig();
-
-    private ElideSecurityConfig securityConfig = new ElideSecurityConfig();
     private Map<String, String> tableClasses = new HashMap<String, String>();
     private Map<String, String> securityClasses = new HashMap<String, String>();
 
@@ -51,10 +44,14 @@ public class ElideDynamicEntityCompiler {
      */
     public ElideDynamicEntityCompiler(String path) {
 
+        ElideTableConfig tableConfig = new ElideTableConfig();
+        ElideSecurityConfig securityConfig = new ElideSecurityConfig();
+        ElideConfigParser elideConfigParser = new ElideConfigParser();
+        HandlebarsHydrator hydrator = new HandlebarsHydrator();
+
         try {
 
             elideConfigParser.parseConfigPath(path);
-
             tableConfig = elideConfigParser.getElideTableConfig();
             securityConfig = elideConfigParser.getElideSecurityConfig();
             tableClasses = hydrator.hydrateTableTemplate(tableConfig);
