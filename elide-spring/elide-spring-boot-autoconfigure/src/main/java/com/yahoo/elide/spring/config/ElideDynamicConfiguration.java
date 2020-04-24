@@ -15,6 +15,7 @@ import org.hibernate.cfg.AvailableSettings;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateProperties;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateProperties.Naming;
 import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -48,6 +49,9 @@ import javax.sql.DataSource;
 public class ElideDynamicConfiguration {
 
     public static final String HIBERNATE_DDL_AUTO = "hibernate.hbm2ddl.auto";
+    public static final String HIBERNATE_PHYSICAL_NAMING = "hibernate.physical_naming_strategy";
+    public static final String HIBERNATE_IMPLICIT_NAMING = "hibernate.implicit_naming_strategy";
+    public static final String HIBERNATE_ID_GEN_MAPPING = "hibernate.use-new-id-generator-mappings";
 
     /**
      * Configure factory bean to create EntityManagerFactory for Dynamic Configuration.
@@ -77,12 +81,19 @@ public class ElideDynamicConfiguration {
 
             //Map of JPA Properties to be be passed to EntityManager
             Map<String, String> jpaPropMap = jpaProperties.getProperties();
+
             String hibernateGetDDLAuto = hibernateProperties.getDdlAuto();
+            Naming hibernateGetNaming =  hibernateProperties.getNaming();
+            String hibernateImplicitStrategy = hibernateGetNaming.getImplicitStrategy();
+            String hibernatePhysicalStrategy = hibernateGetNaming.getPhysicalStrategy();
+            Boolean hibernateGetIdenGen = hibernateProperties.isUseNewIdGeneratorMappings();
 
             //Set the relevant property in JPA corresponding to Hibernate Property Value
-            if (jpaPropMap.get(HIBERNATE_DDL_AUTO) == null && hibernateGetDDLAuto != null) {
-               jpaPropMap.put(HIBERNATE_DDL_AUTO, hibernateGetDDLAuto);
-             }
+            hibernateJPAPropertyOverride(jpaPropMap, HIBERNATE_DDL_AUTO, hibernateGetDDLAuto);
+            hibernateJPAPropertyOverride(jpaPropMap, HIBERNATE_PHYSICAL_NAMING, hibernatePhysicalStrategy);
+            hibernateJPAPropertyOverride(jpaPropMap, HIBERNATE_IMPLICIT_NAMING, hibernateImplicitStrategy);
+            hibernateJPAPropertyOverride(jpaPropMap, HIBERNATE_ID_GEN_MAPPING,
+                    (hibernateGetIdenGen != null) ? hibernateGetIdenGen.toString() : null);
 
             ElideDynamicEntityCompiler compiler = dynamicCompiler.getIfAvailable();
 
@@ -138,5 +149,16 @@ public class ElideDynamicConfiguration {
             });
 
             return bean;
+    }
+
+    /**
+     * Override Hibernate properties in application.yaml with jpa hibernate properties.
+     */
+    private void hibernateJPAPropertyOverride(Map<String, String> jpaPropMap,
+        String jpaPropertyName, String hibernateProperty) {
+        if (jpaPropMap.get(jpaPropertyName) == null && hibernateProperty != null) {
+            jpaPropMap.put(jpaPropertyName, hibernateProperty);
+        }
+
     }
 }
