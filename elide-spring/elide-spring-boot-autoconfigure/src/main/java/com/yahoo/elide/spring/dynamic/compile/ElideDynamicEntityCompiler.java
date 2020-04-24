@@ -69,16 +69,16 @@ public class ElideDynamicEntityCompiler {
                     new ElideDynamicInMemoryClassLoader(ClassLoader.getSystemClassLoader(),
                             Sets.newHashSet(classNames)));
 
-        } catch (NullPointerException | IOException e) {
+        } catch (IOException e) {
             log.error("Unable to read Dynamic Configuration " + e.getMessage());
         }
     }
 
     /**
      * Compile table and security model pojos.
-     * @param path: Dynamic config hjsons root location
+     * @throws Exception
      */
-    public void compile(String path) throws Exception {
+    public void compile() throws Exception {
 
         for (Map.Entry<String, String> tablePojo : tableClasses.entrySet()) {
             log.debug("key: " + tablePojo.getKey() + ", value: " + tablePojo.getValue());

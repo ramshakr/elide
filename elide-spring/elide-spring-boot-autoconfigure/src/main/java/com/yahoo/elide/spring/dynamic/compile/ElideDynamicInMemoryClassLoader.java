@@ -29,10 +29,6 @@ public class ElideDynamicInMemoryClassLoader extends ClassLoader {
         setClassNames(classNames);
     }
 
-    public void setClassNames(Set<String> classNames) {
-        this.classNames = classNames;
-    }
-
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
         return super.findClass(name);

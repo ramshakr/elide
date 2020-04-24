@@ -7,8 +7,8 @@ package com.yahoo.elide.spring.config;
 
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromSubquery;
 import com.yahoo.elide.datastores.aggregation.queryengines.sql.annotation.FromTable;
+import com.yahoo.elide.datastores.jpa.PersistenceUnitInfoImpl;
 import com.yahoo.elide.spring.dynamic.compile.ElideDynamicEntityCompiler;
-import com.yahoo.elide.spring.dynamic.compile.ElideDynamicPersistenceUnit;
 import com.yahoo.elide.utils.ClassScanner;
 
 import org.hibernate.cfg.AvailableSettings;
@@ -64,8 +64,6 @@ public class ElideDynamicConfiguration {
             HibernateProperties hibernateProperties,
             ObjectProvider<ElideDynamicEntityCompiler> dynamicCompiler) {
 
-        try {
-
             //Map for Persistent Unit properties
             Map<String, Object> puiPropertyMap = new HashMap<>();
 
@@ -101,8 +99,8 @@ public class ElideDynamicConfiguration {
             puiProps.putAll(puiPropertyMap);
 
             //Create Elide dynamic Persistence Unit
-            ElideDynamicPersistenceUnit elideDynamicPersistenceUnit =
-                    new ElideDynamicPersistenceUnit("dynamic", compiler.classNames, puiProps,
+            PersistenceUnitInfoImpl elideDynamicPersistenceUnit =
+                    new PersistenceUnitInfoImpl("dynamic", compiler.classNames, puiProps,
                     compiler.getClassLoader());
             elideDynamicPersistenceUnit.setNonJtaDataSource(source);
             elideDynamicPersistenceUnit.setJtaDataSource(source);
@@ -140,9 +138,5 @@ public class ElideDynamicConfiguration {
             });
 
             return bean;
-        } catch (Exception e) {
-            log.error("Setting up Dynamic Configuration failed " + e.getMessage());
-            return null;
-        }
     }
 }

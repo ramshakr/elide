@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.spring.dynamic.compile;
+package com.yahoo.elide.datastores.jpa;
 
 import lombok.Data;
 
@@ -22,7 +22,7 @@ import javax.sql.DataSource;
  * Persistent Unit implementation for Dynamic Configuration.
  */
 @Data
-public class ElideDynamicPersistenceUnit implements PersistenceUnitInfo {
+public class PersistenceUnitInfoImpl implements PersistenceUnitInfo {
 
     private String persistenceUnitName;
     private String persistenceProviderClassName;
@@ -40,7 +40,7 @@ public class ElideDynamicPersistenceUnit implements PersistenceUnitInfo {
     private ClassLoader classLoader;
     private ClassLoader newTempClassLoader;
 
-    public ElideDynamicPersistenceUnit(
+    public PersistenceUnitInfoImpl(
             String persistenceUnitName,
             List<String> managedClassNames,
             Properties properties,
@@ -52,6 +52,13 @@ public class ElideDynamicPersistenceUnit implements PersistenceUnitInfo {
         this.newTempClassLoader = loader;
     }
 
+    public PersistenceUnitInfoImpl(String persistenceUnitName, List<String> managedClassNames, Properties properties) {
+        this.persistenceUnitName = persistenceUnitName;
+        this.managedClassNames = managedClassNames;
+        this.properties = properties;
+    }
+
+
     @Override
     public boolean excludeUnlistedClasses() {
         return false;
@@ -60,13 +67,5 @@ public class ElideDynamicPersistenceUnit implements PersistenceUnitInfo {
     @Override
     public void addTransformer(ClassTransformer classTransformer) {
         //Not implemented
-    }
-
-    public ClassLoader getClassLoader() {
-        return classLoader;
-    }
-
-    public List<String> getManagedClassNames() {
-        return managedClassNames;
     }
 }

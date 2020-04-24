@@ -56,22 +56,18 @@ public class ElideAutoConfiguration {
      * Creates a entity compiler for compiling dynamic config classes.
      * @param settings
      * @return An instance of ElideDynamicEntityCompiler
+     * @throws Exception
      */
     @Bean
     @ConditionalOnMissingBean
-    public ElideDynamicEntityCompiler buildElideDynamicEntityCompiler(ElideConfigProperties settings) {
+    public ElideDynamicEntityCompiler buildElideDynamicEntityCompiler(ElideConfigProperties settings) throws Exception {
 
         ElideDynamicEntityCompiler compiler = null;
 
         if (settings.getDynamicConfig().isEnabled()) {
             compiler = new ElideDynamicEntityCompiler(settings.getDynamicConfig().getPath());
-            try {
-                compiler.compile(settings.getDynamicConfig().getPath());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            compiler.compile();
         }
-
         return compiler;
     }
 
@@ -206,17 +202,17 @@ public class ElideAutoConfiguration {
     private Set<Class<?>> findAnnotatedClasses(ElideDynamicEntityCompiler compiler, Class annotationClass)
             throws ClassNotFoundException {
 
-        Set<Class<?>> annotatedClass = new HashSet<Class<?>>();
+        Set<Class<?>> annotatedClasses = new HashSet<Class<?>>();
         ArrayList<String> dynamicClasses = compiler.classNames;
 
         for (String dynamicClass : dynamicClasses) {
             Class<?> classz = compiler.getClassLoader().loadClass(dynamicClass);
             if (classz.getAnnotation(annotationClass) != null) {
-                annotatedClass.add(classz);
+                annotatedClasses.add(classz);
             }
         }
 
-        return annotatedClass;
+        return annotatedClasses;
 }
 
     /**
