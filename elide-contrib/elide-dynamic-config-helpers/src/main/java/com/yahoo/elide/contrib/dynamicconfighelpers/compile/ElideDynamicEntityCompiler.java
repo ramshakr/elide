@@ -49,12 +49,11 @@ public class ElideDynamicEntityCompiler {
 
         ElideTableConfig tableConfig = new ElideTableConfig();
         ElideSecurityConfig securityConfig = new ElideSecurityConfig();
-        ElideConfigParser elideConfigParser = new ElideConfigParser();
+        ElideConfigParser elideConfigParser = new ElideConfigParser(path);
         HandlebarsHydrator hydrator = new HandlebarsHydrator();
 
         try {
 
-            elideConfigParser.parseConfigPath(path);
             tableConfig = elideConfigParser.getElideTableConfig();
             securityConfig = elideConfigParser.getElideSecurityConfig();
             tableClasses = hydrator.hydrateTableTemplate(tableConfig);
