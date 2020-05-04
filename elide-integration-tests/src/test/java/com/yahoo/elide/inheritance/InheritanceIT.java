@@ -7,6 +7,11 @@
 package com.yahoo.elide.inheritance;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
@@ -22,12 +27,56 @@ import static org.hamcrest.Matchers.equalTo;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import lombok.extern.slf4j.Slf4j;
 
+import javax.ws.rs.core.MediaType;
+
 @Slf4j
 public class InheritanceIT extends IntegrationTest {
+
+    @BeforeEach
+    public void createCharacters() {
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("droid"),
+                                        id("C3P0"),
+                                        attributes(
+                                                attr("primaryFunction", "protocol droid")
+                                        )
+                                )
+                        )
+                )
+                .post("/droid")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .body("data.id", equalTo("C3P0"));
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("hero"),
+                                        id("Luke Skywalker"),
+                                        attributes(
+                                                attr("forceSensitive", true)
+                                        )
+                                )
+                        )
+                )
+                .post("/hero")
+                .then()
+                .statusCode(HttpStatus.SC_CREATED)
+                .body("data.id", equalTo("Luke Skywalker"));
+    }
 
     @Test
     public void testEmployeeHierarchy() {
@@ -82,5 +131,44 @@ public class InheritanceIT extends IntegrationTest {
                         "data.relationships.minions.data.id", contains("1"),
                         "data.relationships.minions.data.type", contains("employee")
                 );
+    }
+
+    @Test
+    public void testJsonApiCharacterHierarchy() {
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .when()
+                .get("/character")
+                .then()
+                .log().all()
+                .statusCode(org.apache.http.HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void testGraphQLCharacterHierarchy() {
+
+        String query = document(
+                selection(
+                        field(
+                                "character",
+                                selections(
+                                        field("name")
+                                )
+                        )
+                )
+        ).toQuery();
+
+        String envelope = "{ \"query\" : \"%s\" }";
+        String formatted = String.format(envelope, query);
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(formatted)
+                .post("/graphQL")
+                .then()
+                .log().all()
+                .statusCode(org.apache.http.HttpStatus.SC_OK);
+
     }
 }
