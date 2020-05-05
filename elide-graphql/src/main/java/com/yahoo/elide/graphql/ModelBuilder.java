@@ -77,7 +77,7 @@ public class ModelBuilder {
     private Map<Class<?>, GraphQLObjectType> connectionObjectRegistry;
     private Set<Class<?>> excludedEntities;
 
-    private HashMap<String, GraphQLInputType> convertedInputs = new HashMap<>();
+    private Map<String, GraphQLInputType> convertedInputs = new HashMap<>();
 
     /**
      * Class constructor, constructs the custom arguments to handle mutations
@@ -256,8 +256,9 @@ public class ModelBuilder {
 
         log.debug("Building query object for {}", entityClass.getName());
 
+        String apiTypeName = nameUtils.toNodeName(entityClass);
         GraphQLObjectType.Builder builder = newObject()
-                .name(nameUtils.toNodeName(entityClass));
+                .name(apiTypeName);
 
         //Add interfaces the type conforms to.
         dictionary.getSuperClassEntities(entityClass).stream()

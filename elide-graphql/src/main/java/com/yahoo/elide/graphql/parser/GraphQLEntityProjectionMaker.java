@@ -223,8 +223,9 @@ public class GraphQLEntityProjectionMaker {
                 addField((Field) fieldSelection, projectionBuilder);
             }
         } else if (fieldSelection instanceof InlineFragment) {
-            String type = ((InlineFragment) fieldSelection).getTypeCondition().getName().toLowerCase();
-            Class<?> entityClass = entityDictionary.getEntityClass(type, "");
+            String apiType = ((InlineFragment) fieldSelection).getTypeCondition().getName();
+            Class<?> entityClass = entityDictionary.getEntityClass(nameUtils.toBoundName(apiType), apiVersion);
+
             ((InlineFragment) fieldSelection).getSelectionSet().getSelections().forEach(
                     selection -> {
                         Field field = (Field) selection;
