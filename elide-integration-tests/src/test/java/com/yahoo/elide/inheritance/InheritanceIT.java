@@ -28,20 +28,18 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.yahoo.elide.contrib.testhelpers.graphql.VariableFieldSerializer;
 import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.GraphQLTestUtils;
 import com.yahoo.elide.initialization.IntegrationTest;
 
-import lombok.Data;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-
-import javax.ws.rs.core.MediaType;
 
 @Slf4j
 @Tag("skipInMemory")  //In memory store doesn't support inheritance.

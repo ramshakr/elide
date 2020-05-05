@@ -6,21 +6,22 @@
 
 package com.yahoo.elide.initialization;
 
+import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
+import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.yahoo.elide.core.HttpStatus;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.yahoo.elide.core.HttpStatus;
 import io.restassured.response.ValidatableResponse;
 
-import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.util.Map;
-
-import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
-import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import javax.ws.rs.core.MediaType;
 
 public class GraphQLTestUtils {
 
