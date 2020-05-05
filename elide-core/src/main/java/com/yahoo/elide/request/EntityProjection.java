@@ -153,6 +153,7 @@ public class EntityProjection {
         public EntityProjectionBuilder relationship(String name, EntityProjection projection) {
             return relationship(Relationship.builder()
                     .alias(name)
+                    .parentType(projection.type)
                     .name(name)
                     .projection(projection)
                     .build());
@@ -177,6 +178,7 @@ public class EntityProjection {
             if (existing != null) {
                 relationships.remove(existing);
                 relationships.add(Relationship.builder()
+                        .parentType(relationship.getParentType())
                         .name(relationshipName)
                         .alias(relationshipAlias)
                         .projection(existing.getProjection().merge(relationship.getProjection()))
@@ -213,6 +215,7 @@ public class EntityProjection {
                 attributes.remove(existing);
                 attributes.add(Attribute.builder()
                         .type(attribute.getType())
+                        .parentType(attribute.getParentType())
                         .name(attributeName)
                         .alias(attributeAlias)
                         .arguments(Sets.union(attribute.getArguments(), existing.getArguments()))

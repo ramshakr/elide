@@ -29,6 +29,7 @@ import com.yahoo.elide.core.HttpStatus;
 import com.yahoo.elide.initialization.IntegrationTest;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.ws.rs.core.MediaType;
 
 @Slf4j
+@Tag("skipInMemory")  //In memory store doesn't support inheritance.
 public class InheritanceIT extends IntegrationTest {
 
     @BeforeEach

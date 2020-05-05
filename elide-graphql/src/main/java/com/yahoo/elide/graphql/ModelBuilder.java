@@ -14,24 +14,24 @@ import static graphql.schema.GraphQLObjectType.newObject;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
-
 import com.yahoo.elide.graphql.containers.NodeContainer;
-import graphql.TypeResolutionEnvironment;
-import graphql.schema.GraphQLInterfaceType;
-import graphql.schema.TypeResolver;
+
 import org.apache.commons.collections4.CollectionUtils;
 
 import graphql.Scalars;
+import graphql.TypeResolutionEnvironment;
 import graphql.schema.DataFetcher;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLInputType;
+import graphql.schema.GraphQLInterfaceType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
+import graphql.schema.TypeResolver;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Modifier;
