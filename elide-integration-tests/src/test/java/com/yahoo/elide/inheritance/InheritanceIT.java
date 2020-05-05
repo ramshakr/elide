@@ -176,7 +176,9 @@ public class InheritanceIT extends IntegrationTest {
     public void testGraphQLDroidFragment() {
 
         //String query = "{ character { __typename ... on Droid { edges { node {primaryFunction }}}}}";
-        String query = "{ character { edges { node { __typename ... on Droid { primaryFunction }}}}}";
+        String query = "{ character { edges { node { __typename " +
+                "... on Character { name } __typename " +
+                "... on Droid { primaryFunction }}}}}";
 
         String envelope = "{ \"query\" : \"%s\" }";
         String formatted = String.format(envelope, query);
