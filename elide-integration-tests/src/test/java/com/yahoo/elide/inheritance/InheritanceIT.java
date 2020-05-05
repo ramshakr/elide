@@ -7,8 +7,11 @@
 package com.yahoo.elide.inheritance;
 
 import static com.yahoo.elide.Elide.JSONAPI_CONTENT_TYPE;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.argument;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.arguments;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.document;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.field;
+import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.mutation;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
@@ -25,9 +28,13 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.yahoo.elide.contrib.testhelpers.graphql.VariableFieldSerializer;
 import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.initialization.GraphQLTestUtils;
 import com.yahoo.elide.initialization.IntegrationTest;
 
+import lombok.Data;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -39,6 +46,17 @@ import javax.ws.rs.core.MediaType;
 @Slf4j
 @Tag("skipInMemory")  //In memory store doesn't support inheritance.
 public class InheritanceIT extends IntegrationTest {
+
+    private GraphQLTestUtils testUtils = new GraphQLTestUtils();
+
+    @Data
+    private static class Droid {
+        @JsonSerialize(using = VariableFieldSerializer.class, as = String.class)
+        String name;
+
+        @JsonSerialize(using = VariableFieldSerializer.class, as = String.class)
+        String primaryFunction;
+    }
 
     @BeforeEach
     public void createCharacters() {
@@ -163,7 +181,7 @@ public class InheritanceIT extends IntegrationTest {
     }
 
     @Test
-    public void testGraphQLCharacterHierarchy() {
+    public void testGraphQLCharacterHierarchy() throws Exception {
 
         String query = document(
                 selection(
@@ -175,9 +193,6 @@ public class InheritanceIT extends IntegrationTest {
                         )
                 )
         ).toQuery();
-
-        String envelope = "{ \"query\" : \"%s\" }";
-        String formatted = String.format(envelope, query);
 
         String expected = document(
                 selections(
@@ -193,25 +208,15 @@ public class InheritanceIT extends IntegrationTest {
                 )
         ).toResponse();
 
-        given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .body(formatted)
-                .post("/graphQL")
-                .then()
-                .statusCode(org.apache.http.HttpStatus.SC_OK)
-                .body(equalTo(expected));
+        testUtils.runQueryWithExpectedResult(query, expected);
     }
 
     @Test
-    public void testGraphQLDroidFragment() {
+    public void testGraphQLDroidFragment() throws Exception {
 
         String query = "{ character { edges { node { "
                 + "__typename ... on Character { name } "
                 + "__typename ... on Droid { primaryFunction }}}}}";
-
-        String envelope = "{ \"query\" : \"%s\" }";
-        String formatted = String.format(envelope, query);
 
         String expected = document(
                 selections(
@@ -230,13 +235,35 @@ public class InheritanceIT extends IntegrationTest {
                 )
         ).toResponse();
 
-        given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .body(formatted)
-                .post("/graphQL")
-                .then()
-                .body(equalTo(expected))
-                .statusCode(org.apache.http.HttpStatus.SC_OK);
+        testUtils.runQueryWithExpectedResult(query, expected);
+    }
+
+    @Test
+    public void testGraphQLCharacterUpsertFailure() throws Exception {
+        Droid droid = new Droid();
+        droid.setName("IG-88");
+        //droid.setPrimaryFunction("assassin droid");
+
+        String query = document(
+                mutation(
+                    selection(
+                            field(
+                                    "character",
+                                    arguments(
+                                            argument("op", "UPSERT"),
+                                            argument("data", droid)
+                                    ),
+                                    selections(
+                                        field("name")
+                                    )
+                            )
+                    )
+                )
+            ).toQuery();
+
+        String expected = "{\"data\":null,\"errors\":[{\"message\":\"Exception while fetching data (/character) "
+                + ": Bad Request Body&#39;Cannot create an entity model of "
+                + "type: Character&#39;\",\"locations\":[{\"line\":1,\"column\":11}],\"path\":[\"character\"]}]}";
+        testUtils.runQueryWithExpectedResult(query, expected);
     }
 }

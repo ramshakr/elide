@@ -19,22 +19,17 @@ import static com.yahoo.elide.core.EntityDictionary.NO_VERSION;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.yahoo.elide.contrib.testhelpers.graphql.VariableFieldSerializer;
 import com.yahoo.elide.core.HttpStatus;
+import com.yahoo.elide.initialization.GraphQLTestUtils;
 import com.yahoo.elide.initialization.IntegrationTest;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import io.restassured.response.ValidatableResponse;
 import lombok.Getter;
 import lombok.Setter;
 import java.io.IOException;
@@ -49,6 +44,8 @@ import javax.ws.rs.core.MediaType;
  * GraphQL integration tests.
  */
 public class GraphQLIT extends IntegrationTest {
+
+    GraphQLTestUtils testUtils = new GraphQLTestUtils();
 
     private static class Book {
         @Getter
@@ -133,7 +130,7 @@ public class GraphQLIT extends IntegrationTest {
                 )
         ).toResponse();
 
-        runQueryWithExpectedResult(graphQLQuery, expectedResponse);
+        testUtils.runQueryWithExpectedResult(graphQLQuery, expectedResponse);
     }
 
     @Test
@@ -204,7 +201,7 @@ public class GraphQLIT extends IntegrationTest {
         variables.put("bookName", "Grapes of Wrath");
         variables.put("authorName", "John Setinbeck");
 
-        runQueryWithExpectedResult(graphQLRequest, variables, expected);
+        testUtils.runQueryWithExpectedResult(graphQLRequest, variables, expected);
     }
 
     @Test
@@ -261,7 +258,7 @@ public class GraphQLIT extends IntegrationTest {
                 )
         ).toResponse();
 
-        runQueryWithExpectedResult(graphQLRequest, expected);
+        testUtils.runQueryWithExpectedResult(graphQLRequest, expected);
     }
 
     @Test
@@ -296,7 +293,7 @@ public class GraphQLIT extends IntegrationTest {
                 )
         ).toResponse();
 
-        runQueryWithExpectedResult(graphQLRequest, expectedResponse);
+        testUtils.runQueryWithExpectedResult(graphQLRequest, expectedResponse);
     }
 
     @Test
@@ -357,10 +354,9 @@ public class GraphQLIT extends IntegrationTest {
                 )
         ).toResponse();
 
-        compareJsonObject(
-                runQuery(toJsonArray(toJsonNode(graphQLRequest1), toJsonNode(graphQLRequest2)), NO_VERSION),
-                expectedResponse
-        );
+        testUtils.compareJsonObject(testUtils.runQuery(testUtils.toJsonArray(
+                        testUtils.toJsonNode(graphQLRequest1),
+                        testUtils.toJsonNode(graphQLRequest2)), NO_VERSION), expectedResponse);
     }
 
     @Test
@@ -406,7 +402,7 @@ public class GraphQLIT extends IntegrationTest {
                 )
         ).toResponse();
 
-        runQueryWithExpectedResult(graphQLRequest, expectedResponse);
+        testUtils.runQueryWithExpectedResult(graphQLRequest, expectedResponse);
     }
 
     @Test
@@ -420,7 +416,7 @@ public class GraphQLIT extends IntegrationTest {
                 + "}"
                 + "}";
 
-        String query = toJsonQuery(graphQLRequest, new HashMap<>());
+        String query = testUtils.toJsonQuery(graphQLRequest, new HashMap<>());
 
         given()
             .contentType(MediaType.APPLICATION_JSON)
@@ -445,7 +441,7 @@ public class GraphQLIT extends IntegrationTest {
                 + "}"
                 + "}";
 
-        String query = toJsonQuery(graphQLRequest, new HashMap<>());
+        String query = testUtils.toJsonQuery(graphQLRequest, new HashMap<>());
 
         given()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -487,7 +483,7 @@ public class GraphQLIT extends IntegrationTest {
                 )
         ).toResponse();
 
-        runQueryWithExpectedResult(graphQLRequest, null, expected, "1.0");
+        testUtils.runQueryWithExpectedResult(graphQLRequest, null, expected, "1.0");
     }
 
     @Test
@@ -507,7 +503,7 @@ public class GraphQLIT extends IntegrationTest {
 
         String expected = "{\"errors\":[{\"message\":\"Invalid operation: Invalid API Version\"}]}";
 
-        String query = toJsonQuery(graphQLRequest, new HashMap<>());
+        String query = testUtils.toJsonQuery(graphQLRequest, new HashMap<>());
 
         given()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -536,79 +532,6 @@ public class GraphQLIT extends IntegrationTest {
 
         String expected = "{\"errors\":[{\"message\":\"Bad Request Body&#39;Unknown entity {parent}.&#39;\"}]}";
 
-        runQueryWithExpectedResult(graphQLRequest, null, expected, "1.0");
-    }
-
-
-    private void runQueryWithExpectedResult(
-            String graphQLQuery,
-            Map<String, Object> variables,
-            String expected
-    ) throws IOException {
-        compareJsonObject(runQuery(graphQLQuery, variables), expected);
-    }
-
-    private void runQueryWithExpectedResult(
-            String graphQLQuery,
-            Map<String, Object> variables,
-            String expected,
-            String apiVersion
-    ) throws IOException {
-        compareJsonObject(runQuery(graphQLQuery, variables, apiVersion), expected);
-    }
-
-    private void runQueryWithExpectedResult(String graphQLQuery, String expected) throws IOException {
-        runQueryWithExpectedResult(graphQLQuery, null, expected);
-    }
-
-    private void compareJsonObject(ValidatableResponse response, String expected) throws IOException {
-        JsonNode responseNode = mapper.readTree(response.extract().body().asString());
-        JsonNode expectedNode = mapper.readTree(expected);
-        assertEquals(expectedNode, responseNode);
-    }
-
-    private ValidatableResponse runQuery(String query, Map<String, Object> variables) throws IOException {
-        return runQuery(toJsonQuery(query, variables), NO_VERSION);
-    }
-
-    private ValidatableResponse runQuery(String query, Map<String, Object> variables, String apiVersion)
-            throws IOException {
-        return runQuery(toJsonQuery(query, variables), apiVersion);
-    }
-
-    private ValidatableResponse runQuery(String query, String apiVersion) {
-        return given()
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .header("ApiVersion", apiVersion)
-                .body(query)
-                .post("/graphQL")
-                .then()
-                .statusCode(HttpStatus.SC_OK);
-    }
-
-    private String toJsonArray(JsonNode... nodes) throws IOException {
-        ArrayNode arrayNode = JsonNodeFactory.instance.arrayNode();
-        for (JsonNode node : nodes) {
-            arrayNode.add(node);
-        }
-        return mapper.writeValueAsString(arrayNode);
-    }
-
-    private String toJsonQuery(String query, Map<String, Object> variables) throws IOException {
-        return mapper.writeValueAsString(toJsonNode(query, variables));
-    }
-
-    private JsonNode toJsonNode(String query) {
-        return toJsonNode(query, null);
-    }
-
-    private JsonNode toJsonNode(String query, Map<String, Object> variables) {
-        ObjectNode graphqlNode = JsonNodeFactory.instance.objectNode();
-        graphqlNode.put("query", query);
-        if (variables != null) {
-            graphqlNode.set("variables", mapper.valueToTree(variables));
-        }
-        return graphqlNode;
+        testUtils.runQueryWithExpectedResult(graphQLRequest, null, expected, "1.0");
     }
 }

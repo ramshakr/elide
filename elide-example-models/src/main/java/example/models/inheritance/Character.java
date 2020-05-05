@@ -7,6 +7,7 @@
 package example.models.inheritance;
 
 import com.yahoo.elide.annotation.Include;
+import lombok.Data;
 
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
@@ -18,6 +19,7 @@ import javax.persistence.InheritanceType;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "CharacterType")
 @Entity
+@Data
 public abstract class Character {
     @Id
     private String name;
