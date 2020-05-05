@@ -254,24 +254,19 @@ public class ModelBuilder {
             return queryObjectRegistry.get(entityClass);
         }
 
-
         log.debug("Building query object for {}", entityClass.getName());
 
         GraphQLObjectType.Builder builder = newObject()
                 .name(nameUtils.toNodeName(entityClass));
 
-        if (entityClass.getName().equals("example.models.inheritance.Hero") ||
-                entityClass.getName().equals("example.models.inheritance.Droid")
-        ) {
-            try {
-                Class<?> interfaceClass = getClass().getClassLoader().loadClass("example.models.inheritance.Character");
-
-                GraphQLInterfaceType interfaceType = queryInterfaceRegistry.computeIfAbsent(interfaceClass, this::buildInterfaceQueryObject);
-                builder.withInterface(interfaceType);
-            } catch (ClassNotFoundException e) {
-                throw new IllegalStateException(e);
-            }
-        }
+        //Add interfaces the type conforms to.
+        dictionary.getSuperClassEntities(entityClass).stream()
+                .filter((superClass) -> Modifier.isAbstract(superClass.getModifiers()))
+                .forEach((superClass) -> {
+                    GraphQLInterfaceType interfaceType = queryInterfaceRegistry.computeIfAbsent(superClass,
+                            this::buildInterfaceQueryObject);
+                    builder.withInterface(interfaceType);
+                });
 
         String id = dictionary.getIdFieldName(entityClass);
         /* our id types are DeferredId objects (not Scalars.GraphQLID) */

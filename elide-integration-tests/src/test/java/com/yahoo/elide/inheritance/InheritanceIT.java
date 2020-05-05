@@ -13,6 +13,7 @@ import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selection;
 import static com.yahoo.elide.contrib.testhelpers.graphql.GraphQLDSL.selections;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attr;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.attributes;
+import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.data;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.datum;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.id;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.linkage;
@@ -140,8 +141,23 @@ public class InheritanceIT extends IntegrationTest {
                 .when()
                 .get("/character")
                 .then()
-                .log().all()
-                .statusCode(org.apache.http.HttpStatus.SC_OK);
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body(equalTo(data(
+                        resource(
+                                type("droid"),
+                                id("C3P0"),
+                                attributes(
+                                        attr("primaryFunction", "protocol droid")
+                                )
+                        ),
+                        resource(
+                                type("hero"),
+                                id("Luke Skywalker"),
+                                attributes(
+                                        attr("forceSensitive", true)
+                                )
+                        )
+                ).toJSON()));
     }
 
     @Test
@@ -161,21 +177,33 @@ public class InheritanceIT extends IntegrationTest {
         String envelope = "{ \"query\" : \"%s\" }";
         String formatted = String.format(envelope, query);
 
+        String expected = document(
+                selections(
+                        field(
+                                "character",
+                                selections(
+                                        field("name", "C3P0")
+                                ),
+                                selections(
+                                        field("name", "Luke Skywalker")
+                                )
+                        )
+                )
+        ).toResponse();
+
         given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(formatted)
                 .post("/graphQL")
                 .then()
-                .log().all()
-                .statusCode(org.apache.http.HttpStatus.SC_OK);
-
+                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .body(equalTo(expected));
     }
 
     @Test
     public void testGraphQLDroidFragment() {
 
-        //String query = "{ character { __typename ... on Droid { edges { node {primaryFunction }}}}}";
         String query = "{ character { edges { node { __typename " +
                 "... on Character { name } __typename " +
                 "... on Droid { primaryFunction }}}}}";
@@ -183,13 +211,30 @@ public class InheritanceIT extends IntegrationTest {
         String envelope = "{ \"query\" : \"%s\" }";
         String formatted = String.format(envelope, query);
 
+        String expected = document(
+                selections(
+                        field(
+                                "character",
+                                selections(
+                                        field("__typename", "Droid"),
+                                        field("name", "C3P0"),
+                                        field("primaryFunction", "protocol droid")
+                                ),
+                                selections(
+                                        field("__typename", "Hero"),
+                                        field("name", "Luke Skywalker")
+                                )
+                        )
+                )
+        ).toResponse();
+
         given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(formatted)
                 .post("/graphQL")
                 .then()
-                .log().all()
+                .body(equalTo(expected))
                 .statusCode(org.apache.http.HttpStatus.SC_OK);
     }
 }
