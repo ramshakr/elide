@@ -41,6 +41,7 @@ import graphql.language.Document;
 import graphql.language.Field;
 import graphql.language.FragmentDefinition;
 import graphql.language.FragmentSpread;
+import graphql.language.InlineFragment;
 import graphql.language.OperationDefinition;
 import graphql.language.Selection;
 import graphql.language.SelectionSet;
@@ -221,6 +222,18 @@ public class GraphQLEntityProjectionMaker {
             } else {
                 addField((Field) fieldSelection, projectionBuilder);
             }
+        } else if (fieldSelection instanceof InlineFragment) {
+            String type = ((InlineFragment) fieldSelection).getTypeCondition().getName().toLowerCase();
+            Class<?> entityClass = entityDictionary.getEntityClass(type, "");
+            ((InlineFragment) fieldSelection).getSelectionSet().getSelections().forEach(
+                    selection -> {
+                        Field field = (Field) selection;
+                        EntityProjectionBuilder attributeProjection = EntityProjection.builder()
+                                .type(entityClass);
+                        addSelection(selection, attributeProjection);
+                        Attribute attribute = attributeProjection.getAttributeByAlias(field.getName());
+                        projectionBuilder.attribute(attribute);
+                    });
         } else {
             throw new InvalidEntityBodyException(
                     String.format("Unsupported selection type {%s}.", fieldSelection.getClass()));

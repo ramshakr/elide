@@ -171,4 +171,23 @@ public class InheritanceIT extends IntegrationTest {
                 .statusCode(org.apache.http.HttpStatus.SC_OK);
 
     }
+
+    @Test
+    public void testGraphQLDroidFragment() {
+
+        //String query = "{ character { __typename ... on Droid { edges { node {primaryFunction }}}}}";
+        String query = "{ character { edges { node { __typename ... on Droid { primaryFunction }}}}}";
+
+        String envelope = "{ \"query\" : \"%s\" }";
+        String formatted = String.format(envelope, query);
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(formatted)
+                .post("/graphQL")
+                .then()
+                .log().all()
+                .statusCode(org.apache.http.HttpStatus.SC_OK);
+    }
 }
