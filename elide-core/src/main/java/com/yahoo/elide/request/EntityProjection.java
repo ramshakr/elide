@@ -243,6 +243,19 @@ public class EntityProjection {
         }
 
         /**
+         * Get an relationship by alias.
+         *
+         * @param relationshipAlias alias to refer to a relationship field
+         * @return found attribute or null
+         */
+        public Relationship getRelationshipByAlias(String relationshipAlias) {
+            return relationships.stream()
+                    .filter(relationship -> relationship.getAlias().equals(relationshipAlias))
+                    .findAny()
+                    .orElse(null);
+        }
+
+        /**
          * Check whether a field alias is ambiguous.
          *
          * @param fieldName field that the alias is bound to

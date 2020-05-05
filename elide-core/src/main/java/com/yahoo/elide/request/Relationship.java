@@ -29,11 +29,24 @@ public class Relationship {
 
     private String alias;
 
+    //If null, the parentType is the same as the projection to which this relationship belongs.
+    //If not null, this represents the subtype of the projection where this relationship can be found.
+    private Class<?> parentType;
+
     @NonNull
     private EntityProjection projection;
 
     private Relationship(@NonNull String name, String alias, @NonNull EntityProjection projection) {
         this.name = name;
+        this.parentType = null;
+        this.alias = alias == null ? name : alias;
+        this.projection = projection;
+    }
+
+    private Relationship(@NonNull String name, String alias, Class<?> parentType,
+                         @NonNull EntityProjection projection) {
+        this.name = name;
+        this.parentType = parentType;
         this.alias = alias == null ? name : alias;
         this.projection = projection;
     }

@@ -223,18 +223,7 @@ public class GraphQLEntityProjectionMaker {
                 addField((Field) fieldSelection, projectionBuilder);
             }
         } else if (fieldSelection instanceof InlineFragment) {
-            String apiType = ((InlineFragment) fieldSelection).getTypeCondition().getName();
-            Class<?> entityClass = entityDictionary.getEntityClass(nameUtils.toBoundName(apiType), apiVersion);
-
-            ((InlineFragment) fieldSelection).getSelectionSet().getSelections().forEach(
-                    selection -> {
-                        Field field = (Field) selection;
-                        EntityProjectionBuilder attributeProjection = EntityProjection.builder()
-                                .type(entityClass);
-                        addSelection(selection, attributeProjection);
-                        Attribute attribute = attributeProjection.getAttributeByAlias(field.getName());
-                        projectionBuilder.attribute(attribute);
-                    });
+            addInlineFragment((InlineFragment) fieldSelection, projectionBuilder);
         } else {
             throw new InvalidEntityBodyException(
                     String.format("Unsupported selection type {%s}.", fieldSelection.getClass()));
@@ -258,6 +247,42 @@ public class GraphQLEntityProjectionMaker {
             fragmentDefinition.getSelectionSet().getSelections()
                     .forEach(selection -> addSelection(selection, projectionBuilder));
         }
+    }
+
+    /**
+     * Adds a new graphQL {@link InlineFragment} into an {@link EntityProjection}.  Inline fragments
+     * are only supported inside nodes where an interface has been requested.
+     *
+     * @param fragment graphQL fragment.
+     * @param projectionBuilder projection that is being built
+     */
+    private void addInlineFragment(InlineFragment fragment, EntityProjectionBuilder projectionBuilder) {
+        //Lookup the type requested in the fragment.
+        String apiType = fragment.getTypeCondition().getName();
+        Class<?> entityClass = entityDictionary.getEntityClass(nameUtils.toBoundName(apiType), apiVersion);
+
+        fragment.getSelectionSet().getSelections().forEach(
+                selection -> {
+                    Field field = (Field) selection;
+
+                    //Build another projection based on the type requested.
+                    EntityProjectionBuilder subProjection = EntityProjection.builder()
+                            .type(entityClass);
+                    addSelection(selection, subProjection);
+
+                    String fieldName = field.getName();
+                    String alias = field.getAlias();
+                    alias = (alias == null || alias.isEmpty()) ? fieldName : alias;
+
+                    //Copy the projection attributes and relationships into the original projection.
+                    if (entityDictionary.getRelationshipType(entityClass, fieldName) != RelationshipType.NONE) {
+                        Relationship relationship = subProjection.getRelationshipByAlias(alias);
+                        projectionBuilder.relationship(relationship);
+                    } else {
+                        Attribute attribute = subProjection.getAttributeByAlias(alias);
+                        projectionBuilder.attribute(attribute);
+                    }
+                });
     }
 
     /**
@@ -331,6 +356,7 @@ public class GraphQLEntityProjectionMaker {
         Class<?> attributeType = entityDictionary.getType(parentType, attributeName);
         if (attributeType != null) {
             Attribute attribute = Attribute.builder()
+                    .parentType(projectionBuilder.getType())
                     .type(attributeType)
                     .name(attributeName)
                     .alias(attributeAlias)
@@ -567,6 +593,7 @@ public class GraphQLEntityProjectionMaker {
         if (existingAttribute != null) {
             // add a new argument to the existing attribute
             Attribute toAdd = Attribute.builder()
+                    .parentType(existingAttribute.getParentType())
                     .type(existingAttribute.getType())
                     .name(existingAttribute.getName())
                     .alias(existingAttribute.getAlias())
@@ -586,6 +613,7 @@ public class GraphQLEntityProjectionMaker {
 
             // create a new attribute if this attribute doesn't exist in the projection
             Attribute toAdd = Attribute.builder()
+                    .parentType(projectionBuilder.getType())
                     .type(attributeType)
                     .name(argumentName)
                     .alias(argumentName)
