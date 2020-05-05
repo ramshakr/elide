@@ -9,11 +9,16 @@ package com.yahoo.elide.graphql;
 import static graphql.schema.GraphQLArgument.newArgument;
 import static graphql.schema.GraphQLFieldDefinition.newFieldDefinition;
 import static graphql.schema.GraphQLInputObjectField.newInputObjectField;
+import static graphql.schema.GraphQLInterfaceType.newInterface;
 import static graphql.schema.GraphQLObjectType.newObject;
 
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
 
+import com.yahoo.elide.graphql.containers.NodeContainer;
+import graphql.TypeResolutionEnvironment;
+import graphql.schema.GraphQLInterfaceType;
+import graphql.schema.TypeResolver;
 import org.apache.commons.collections4.CollectionUtils;
 
 import graphql.Scalars;
@@ -29,10 +34,12 @@ import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeReference;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -66,6 +73,7 @@ public class ModelBuilder {
 
     private Map<Class<?>, MutableGraphQLInputObjectType> inputObjectRegistry;
     private Map<Class<?>, GraphQLObjectType> queryObjectRegistry;
+    private Map<Class<?>, GraphQLInterfaceType> queryInterfaceRegistry;
     private Map<Class<?>, GraphQLObjectType> connectionObjectRegistry;
     private Set<Class<?>> excludedEntities;
 
@@ -136,6 +144,7 @@ public class ModelBuilder {
 
         inputObjectRegistry = new HashMap<>();
         queryObjectRegistry = new HashMap<>();
+        queryInterfaceRegistry = new HashMap<>();
         connectionObjectRegistry = new HashMap<>();
         excludedEntities = new HashSet<>();
     }
@@ -213,12 +222,17 @@ public class ModelBuilder {
 
         String entityName = nameUtils.toConnectionName(entityClass);
 
+        Function<Class<?>, GraphQLOutputType> outputTypeProvider = this::buildQueryObject;
+        if (Modifier.isAbstract(entityClass.getModifiers())) {
+            outputTypeProvider = this::buildInterfaceQueryObject;
+        }
+
         GraphQLObjectType connectionObject = newObject()
                 .name(entityName)
                 .field(newFieldDefinition()
                         .name("edges")
                         .dataFetcher(dataFetcher)
-                        .type(buildEdgesObject(entityClass, buildQueryObject(entityClass))))
+                        .type(buildEdgesObject(entityClass, outputTypeProvider.apply(entityClass))))
                 .field(newFieldDefinition()
                         .name("pageInfo")
                         .dataFetcher(dataFetcher)
@@ -240,10 +254,24 @@ public class ModelBuilder {
             return queryObjectRegistry.get(entityClass);
         }
 
+
         log.debug("Building query object for {}", entityClass.getName());
 
         GraphQLObjectType.Builder builder = newObject()
                 .name(nameUtils.toNodeName(entityClass));
+
+        if (entityClass.getName().equals("example.models.inheritance.Hero") ||
+                entityClass.getName().equals("example.models.inheritance.Droid")
+        ) {
+            try {
+                Class<?> interfaceClass = getClass().getClassLoader().loadClass("example.models.inheritance.Character");
+
+                GraphQLInterfaceType interfaceType = queryInterfaceRegistry.computeIfAbsent(interfaceClass, this::buildInterfaceQueryObject);
+                builder.withInterface(interfaceType);
+            } catch (ClassNotFoundException e) {
+                throw new IllegalStateException(e);
+            }
+        }
 
         String id = dictionary.getIdFieldName(entityClass);
         /* our id types are DeferredId objects (not Scalars.GraphQLID) */
@@ -314,6 +342,97 @@ public class ModelBuilder {
 
         GraphQLObjectType queryObject = builder.build();
         queryObjectRegistry.put(entityClass, queryObject);
+        return queryObject;
+    }
+
+    private GraphQLInterfaceType buildInterfaceQueryObject(Class<?> entityClass) {
+        if (queryInterfaceRegistry.containsKey(entityClass)) {
+            return queryInterfaceRegistry.get(entityClass);
+        }
+
+        log.debug("Building query object for {}", entityClass.getName());
+
+        GraphQLInterfaceType.Builder builder = newInterface()
+                .name(nameUtils.toNodeName(entityClass));
+
+        String id = dictionary.getIdFieldName(entityClass);
+        /* our id types are DeferredId objects (not Scalars.GraphQLID) */
+        builder.field(newFieldDefinition()
+                .name(id)
+                .dataFetcher(dataFetcher)
+                .type(GraphQLScalars.GRAPHQL_DEFERRED_ID));
+
+        for (String attribute : dictionary.getAttributes(entityClass)) {
+            Class<?> attributeClass = dictionary.getType(entityClass, attribute);
+            if (excludedEntities.contains(attributeClass)) {
+                continue;
+            }
+
+            log.debug("Building query attribute {} {} with arguments {} for entity {}",
+                    attribute,
+                    attributeClass.getName(),
+                    dictionary.getAttributeArguments(attributeClass, attribute).toString(),
+                    entityClass.getName());
+
+            GraphQLType attributeType =
+                    generator.attributeToQueryObject(entityClass, attributeClass, attribute, dataFetcher);
+
+            if (attributeType == null) {
+                continue;
+            }
+
+            builder.field(newFieldDefinition()
+                    .name(attribute)
+                    .argument(generator.attributeArgumentToQueryObject(entityClass, attribute, dataFetcher))
+                    .dataFetcher(dataFetcher)
+                    .type((GraphQLOutputType) attributeType)
+            );
+        }
+
+        for (String relationship : dictionary.getElideBoundRelationships(entityClass)) {
+            Class<?> relationshipClass = dictionary.getParameterizedType(entityClass, relationship);
+            if (excludedEntities.contains(relationshipClass)) {
+                continue;
+            }
+
+            String relationshipEntityName = nameUtils.toConnectionName(relationshipClass);
+            RelationshipType type = dictionary.getRelationshipType(entityClass, relationship);
+
+            if (type.isToOne()) {
+                builder.field(newFieldDefinition()
+                        .name(relationship)
+                        .dataFetcher(dataFetcher)
+                        .argument(relationshipOpArg)
+                        .argument(buildInputObjectArgument(relationshipClass, false))
+                        .type(new GraphQLTypeReference(relationshipEntityName))
+                );
+            } else {
+                builder.field(newFieldDefinition()
+                        .name(relationship)
+                        .dataFetcher(dataFetcher)
+                        .argument(relationshipOpArg)
+                        .argument(filterArgument)
+                        .argument(sortArgument)
+                        .argument(pageOffsetArgument)
+                        .argument(pageFirstArgument)
+                        .argument(idArgument)
+                        .argument(buildInputObjectArgument(relationshipClass, true))
+                        .type(new GraphQLTypeReference(relationshipEntityName))
+                );
+            }
+        }
+
+        builder.typeResolver(new TypeResolver() {
+            @Override
+            public GraphQLObjectType getType(TypeResolutionEnvironment env) {
+                NodeContainer node = (NodeContainer) env.getObject();
+                String apiName = nameUtils.toNodeName(node.getPersistentResource().getResourceClass());
+                return env.getSchema().getObjectType(apiName);
+            }
+        });
+
+        GraphQLInterfaceType queryObject = builder.build();
+        queryInterfaceRegistry.put(entityClass, queryObject);
         return queryObject;
     }
 

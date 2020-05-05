@@ -18,7 +18,7 @@ import javax.persistence.InheritanceType;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "CharacterType")
 @Entity
-public class Character {
+public abstract class Character {
     @Id
     private String name;
 }
