@@ -116,13 +116,11 @@
             <groupId>org.mdkt.compiler</groupId>
             <artifactId>InMemoryJavaCompiler</artifactId>
             <version>${mdkt.compiler.version}</version>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.google.collections</groupId>
             <artifactId>google-collections</artifactId>
             <version>${google.collections.version}</version>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
