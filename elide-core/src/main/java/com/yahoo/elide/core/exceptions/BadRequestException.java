@@ -10,8 +10,8 @@ import com.yahoo.elide.core.HttpStatus;
 /**
  * Invalid predicate exception.
  */
-public class InvalidPredicateException extends HttpStatusException {
-    public InvalidPredicateException(String message) {
+public class BadRequestException extends HttpStatusException {
+    public BadRequestException(String message) {
         super(HttpStatus.SC_BAD_REQUEST, message);
     }
 }

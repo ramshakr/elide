@@ -18,8 +18,8 @@ import static com.yahoo.elide.graphql.KeyWord.TYPENAME;
 import com.yahoo.elide.ElideSettings;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.RelationshipType;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidEntityBodyException;
-import com.yahoo.elide.core.exceptions.InvalidPredicateException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.core.filter.dialect.MultipleFilterDialect;
 import com.yahoo.elide.core.filter.dialect.ParseException;
@@ -55,7 +55,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.MultivaluedHashMap;
 
 /**
@@ -554,7 +553,7 @@ public class GraphQLEntityProjectionMaker {
                     toQueryParams(typeName, filterString), apiVersion).get(typeName);
         } catch (ParseException e) {
             log.debug("Filter parse exception caught", e);
-            throw new InvalidPredicateException("Could not parse filter "
+            throw new BadRequestException("Could not parse filter "
                     + filterString + " for type: " + typeName + ". reason: " + e.getMessage());
         }
     }

@@ -5,12 +5,11 @@
  */
 package com.yahoo.elide.graphql.containers;
 
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.graphql.Environment;
 import com.yahoo.elide.graphql.PersistentResourceFetcher;
 
 import java.util.Map;
-
-import javax.ws.rs.BadRequestException;
 
 /**
  * Return values for a Map (i.e. entry set).
@@ -40,6 +39,7 @@ public class MapEntryContainer implements GraphQLContainer {
             return entry.getValue();
         }
 
-        throw new BadRequestException("Invalid field: '" + fieldName + "'. Maps only contain fields 'key' and 'value'");
+        throw new BadRequestException("Invalid field: '" + fieldName
+                + "'. Maps only contain fields 'key' and 'value'");
     }
 }

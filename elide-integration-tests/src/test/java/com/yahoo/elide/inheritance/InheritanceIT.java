@@ -25,8 +25,10 @@ import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.relationshi
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.resource;
 import static com.yahoo.elide.contrib.testhelpers.jsonapi.JsonApiDSL.type;
 import static io.restassured.RestAssured.given;
+import static org.apache.http.HttpStatus.SC_OK;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.startsWith;
 
 import com.yahoo.elide.contrib.testhelpers.graphql.VariableFieldSerializer;
 import com.yahoo.elide.core.HttpStatus;
@@ -40,6 +42,8 @@ import org.junit.jupiter.api.Test;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.HashMap;
 
 @Slf4j
 @Tag("skipInMemory")  //In memory store doesn't support inheritance.
@@ -145,7 +149,7 @@ public class InheritanceIT extends IntegrationTest {
                 .when()
                 .get("/manager/1")
                 .then()
-                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .statusCode(SC_OK)
                 .body("data.id", equalTo("1"),
                         "data.relationships.minions.data.id", contains("1"),
                         "data.relationships.minions.data.type", contains("employee")
@@ -159,7 +163,7 @@ public class InheritanceIT extends IntegrationTest {
                 .when()
                 .get("/character")
                 .then()
-                .statusCode(org.apache.http.HttpStatus.SC_OK)
+                .statusCode(SC_OK)
                 .body(equalTo(data(
                         resource(
                                 type("droid"),
@@ -237,6 +241,19 @@ public class InheritanceIT extends IntegrationTest {
     }
 
     @Test
+    public void testGraphQLInvalidFragment() throws Exception {
+
+        String query = "{ character { edges { node { "
+                + "__typename ... on Manager { id } "
+                + "__typename ... on Droid { primaryFunction }}}}}";
+
+        testUtils.runQuery(query, new HashMap<>())
+                .statusCode(SC_OK)
+                .body(startsWith("{\"errors\":[{\"message\":\"Validation error of type InvalidFragmentType: "));
+    }
+
+
+    @Test
     public void testGraphQLCharacterUpsertFailure() throws Exception {
         Droid droid = new Droid();
         droid.setName("IG-88");
@@ -301,5 +318,75 @@ public class InheritanceIT extends IntegrationTest {
                 .then()
                 .statusCode(org.apache.http.HttpStatus.SC_BAD_REQUEST)
                 .body(equalTo(expected));
+    }
+
+    @Test
+    public void testJsonApiCharacterHierarchySparseFields() {
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .when()
+                .get("/character?fields[droid]=primaryFunction&fields[hero]=id")
+                .then()
+                .statusCode(SC_OK)
+                .body(equalTo(data(
+                        resource(
+                                type("droid"),
+                                id("C3P0"),
+                                attributes(
+                                        attr("primaryFunction", "protocol droid")
+                                )
+                        ),
+                        resource(
+                                type("hero"),
+                                id("Luke Skywalker")
+                        )
+                ).toJSON()));
+    }
+
+    @Test
+    public void testJsonApiCharacterInvalidCreation() {
+        String expected = "{\"errors\":[{\"detail\":\"Bad Request Body&#39;Cannot create an "
+                + "entity model of type: Character&#39;\"}]}";
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .accept(JSONAPI_CONTENT_TYPE)
+                .body(
+                        datum(
+                                resource(
+                                        type("character"),
+                                        id("IG-88"),
+                                        attributes(
+                                                attr("primaryFunction", "assassin droid")
+                                        )
+                                )
+                        )
+                )
+                .post("/character")
+                .then()
+                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .body(equalTo(expected));
+    }
+
+    @Test
+    public void testGraphQLCharacterInvalidSort() throws Exception {
+
+        String query = document(
+                selection(
+                        field(
+                                "character",
+                                arguments(
+                                        argument("op", "FETCH"),
+                                        argument("sort", "-primaryFunction", true)
+                                ),
+                                selections(
+                                        field("name")
+                                )
+                        )
+                )).toQuery();
+
+        String expected = "{\"errors\":[{\"message\":\"Invalid sorting clause -primaryFunction for type character\"}]}";
+
+        testUtils.runQueryWithExpectedResult(query, expected);
     }
 }

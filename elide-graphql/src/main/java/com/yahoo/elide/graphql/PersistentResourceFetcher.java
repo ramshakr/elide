@@ -11,6 +11,7 @@ import static com.yahoo.elide.graphql.ModelBuilder.ARGUMENT_OPERATION;
 import com.yahoo.elide.core.EntityDictionary;
 import com.yahoo.elide.core.PersistentResource;
 import com.yahoo.elide.core.RequestScope;
+import com.yahoo.elide.core.exceptions.BadRequestException;
 import com.yahoo.elide.core.exceptions.InvalidObjectIdentifierException;
 import com.yahoo.elide.core.exceptions.InvalidValueException;
 import com.yahoo.elide.graphql.containers.ConnectionContainer;
@@ -36,7 +37,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.BadRequestException;
 
 /**
  * Invoked by GraphQL Java to fetch/mutate data from Elide.
