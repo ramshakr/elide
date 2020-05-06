@@ -31,8 +31,8 @@ public class Attribute {
     private String alias;
 
     @ToString.Exclude
-    //If null, the parentType is the same as the projection to which this attribute belongs.
-    //If not null, this represents the subtype of the projection where this attribute can be found.
+    //If null, the parentType is the same as the entity projection to which this attribute belongs.
+    //If not null, this represents the model type where this attribute can be found.
     private Class<?> parentType;
 
     @Singular
