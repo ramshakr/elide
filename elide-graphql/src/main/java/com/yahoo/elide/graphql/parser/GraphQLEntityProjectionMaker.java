@@ -554,7 +554,8 @@ public class GraphQLEntityProjectionMaker {
                     toQueryParams(typeName, filterString), apiVersion).get(typeName);
         } catch (ParseException e) {
             log.debug("Filter parse exception caught", e);
-            throw new InvalidPredicateException("Could not parse filter " + filterString + " for type: " + typeName);
+            throw new InvalidPredicateException("Could not parse filter "
+                    + filterString + " for type: " + typeName + ". reason: " + e.getMessage());
         }
     }
 

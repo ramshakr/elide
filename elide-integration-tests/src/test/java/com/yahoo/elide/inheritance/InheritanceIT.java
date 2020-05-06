@@ -240,7 +240,6 @@ public class InheritanceIT extends IntegrationTest {
     public void testGraphQLCharacterUpsertFailure() throws Exception {
         Droid droid = new Droid();
         droid.setName("IG-88");
-        //droid.setPrimaryFunction("assassin droid");
 
         String query = document(
                 mutation(
@@ -263,5 +262,44 @@ public class InheritanceIT extends IntegrationTest {
                 + ": Bad Request Body&#39;Cannot create an entity model of "
                 + "type: Character&#39;\",\"locations\":[{\"line\":1,\"column\":11}],\"path\":[\"character\"]}]}";
         testUtils.runQueryWithExpectedResult(query, expected);
+    }
+
+    @Test
+    public void testGraphQLCharacterInvalidFilter() throws Exception {
+
+        String query = document(
+                selection(
+                        field(
+                                "character",
+                                arguments(
+                                        argument("op", "FETCH"),
+                                        argument("filter", "primaryFunction==*protocol*", true)
+                                ),
+                                selections(
+                                        field("name")
+                                )
+                        )
+                )).toQuery();
+
+        String expected = "{\"errors\":[{\"message\":\"Could not parse filter primaryFunction==*protocol* for "
+                + "type: character. reason: Invalid filter format: filter[character]\\nNo such association "
+                + "primaryFunction for type character\"}]}";
+
+        testUtils.runQueryWithExpectedResult(query, expected);
+    }
+
+    @Test
+    public void testJsonApiCharacterInvalidFilter() {
+        String expected = "{\"errors\":[{\"detail\":\"Invalid filter format: filter\\nNo such association "
+                + "primaryFunction for type character\\nInvalid filter format: "
+                + "filter\\nInvalid query parameter: filter\"}]}";
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .when()
+                .get("/character?filter=primaryFunction==*droid*")
+                .then()
+                .statusCode(org.apache.http.HttpStatus.SC_BAD_REQUEST)
+                .body(equalTo(expected));
     }
 }
