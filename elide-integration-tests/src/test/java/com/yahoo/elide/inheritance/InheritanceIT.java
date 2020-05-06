@@ -54,10 +54,10 @@ public class InheritanceIT extends IntegrationTest {
     @Data
     private static class Droid {
         @JsonSerialize(using = VariableFieldSerializer.class, as = String.class)
-        String name;
+        private String name;
 
         @JsonSerialize(using = VariableFieldSerializer.class, as = String.class)
-        String primaryFunction;
+        private String primaryFunction;
     }
 
     @BeforeEach

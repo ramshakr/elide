@@ -45,7 +45,7 @@ import javax.ws.rs.core.MediaType;
  */
 public class GraphQLIT extends IntegrationTest {
 
-    GraphQLTestUtils testUtils = new GraphQLTestUtils();
+    private GraphQLTestUtils testUtils = new GraphQLTestUtils();
 
     private static class Book {
         @Getter

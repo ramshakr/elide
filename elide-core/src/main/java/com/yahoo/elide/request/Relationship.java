@@ -17,13 +17,6 @@ import lombok.NonNull;
 @Builder
 public class Relationship {
 
-    public RelationshipBuilder copyOf() {
-        return Relationship.builder()
-                .alias(alias)
-                .name(name)
-                .projection(projection);
-    }
-
     @NonNull
     private String name;
 
@@ -49,6 +42,13 @@ public class Relationship {
         this.parentType = parentType;
         this.alias = alias == null ? name : alias;
         this.projection = projection;
+    }
+
+    public RelationshipBuilder copyOf() {
+        return Relationship.builder()
+                .alias(alias)
+                .name(name)
+                .projection(projection);
     }
 
     public Relationship merge(Relationship toMerge) {
