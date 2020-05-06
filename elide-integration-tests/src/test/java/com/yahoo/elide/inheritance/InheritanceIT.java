@@ -389,4 +389,18 @@ public class InheritanceIT extends IntegrationTest {
 
         testUtils.runQueryWithExpectedResult(query, expected);
     }
+
+    @Test
+    public void testJsonApiCharacterInvalidSort() {
+        String expected = "{\"errors\":[{\"detail\":\"Invalid value: character does "
+                + "not contain the field primaryFunction\"}]}";
+
+        given()
+                .contentType(JSONAPI_CONTENT_TYPE)
+                .when()
+                .get("/character?sort=-primaryFunction")
+                .then()
+                .statusCode(org.apache.http.HttpStatus.SC_BAD_REQUEST)
+                .body(equalTo(expected));
+    }
 }
