@@ -84,14 +84,11 @@ public class ElideDynamicEntityCompiler {
 
         for (Map.Entry<String, String> tablePojo : tableClasses.entrySet()) {
             log.debug("key: " + tablePojo.getKey() + ", value: " + tablePojo.getValue());
-            System.out.println(tablePojo.getValue());
             compiler.addSource(PACKAGE_NAME + tablePojo.getKey(), tablePojo.getValue());
-
         }
 
         for (Map.Entry<String, String> secPojo : securityClasses.entrySet()) {
             log.debug("key: " + secPojo.getKey() + ", value: " + secPojo.getValue());
-            System.out.println(secPojo.getValue());
             compiler.addSource(PACKAGE_NAME + secPojo.getKey(), secPojo.getValue());
         }
 

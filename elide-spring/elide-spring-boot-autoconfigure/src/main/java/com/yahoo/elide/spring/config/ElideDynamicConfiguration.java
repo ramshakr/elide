@@ -73,10 +73,6 @@ public class ElideDynamicConfiguration {
             ArrayList<Class> bindClasses = new ArrayList<>();
             bindClasses.addAll(ClassScanner.getAnnotatedClasses(Entity.class));
 
-            //Bind FromTable/FromSubSelect classes from classpath to Persistence Unit
-            //bindClasses.addAll(ClassScanner.getAnnotatedClasses(FromTable.class));
-            //bindClasses.addAll(ClassScanner.getAnnotatedClasses(FromSubquery.class));
-
             //Map of JPA Properties to be be passed to EntityManager
             Map<String, String> jpaPropMap = jpaProperties.getProperties();
 
