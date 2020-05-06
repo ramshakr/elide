@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * See LICENSE file in project root for terms.
  */
-package com.yahoo.elide.contrib.dynamicconfig.model;
+package dynamicconfig.models;
 
 import com.yahoo.elide.annotation.DeletePermission;
 import com.yahoo.elide.annotation.Include;
@@ -41,7 +41,7 @@ import javax.persistence.Id;
 <%#if sql%>@FromSubquery(sql = "<%sql%>")<%/if%>
 <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
 <%#if description%>@Meta(description = "<%description%>")<%/if%>
-<%#if hidden%>@Exclude<%else%>@Include(rootLevel = true, type = "<%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%>")<%/if%>
+<%#if hidden%>@Exclude<%else%>@Include(rootLevel = true, type = "<%#lowerCaseFirstLetter name%><%/lowerCaseFirstLetter%>")<%/if%>
 public class <%#capitalizeFirstLetter name%><%/capitalizeFirstLetter%> <%#if extend%>extends <%#capitalizeFirstLetter extend%><%/capitalizeFirstLetter%><%/if%>{
 
     @Id
