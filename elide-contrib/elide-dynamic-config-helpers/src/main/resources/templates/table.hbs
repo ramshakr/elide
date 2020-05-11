@@ -38,7 +38,8 @@ import javax.persistence.Id;
 @ToString
 @Data
 <%#if table%>@FromTable(name = "<%#if schema%><%schema%>.<%/if%><%table%>")<%/if%>
-<%#if sql%>@FromSubquery(sql = "<%sql%>")<%/if%>
+<%else if sql%>@FromSubquery(sql = "<%sql%>")
+<%/if%>
 <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
 <%#if description%>@Meta(description = "<%description%>")<%/if%>
 <%#if hidden%>@Exclude<%else%>@Include(rootLevel = true, type = "<%#lowerCaseFirstLetter name%><%/lowerCaseFirstLetter%>")<%/if%>
