@@ -20,6 +20,8 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.PrePersist;
+import javax.persistence.Transient;
+import javax.validation.constraints.Size;
 
 /**
  * Model for Async Query.
@@ -35,12 +37,18 @@ import javax.persistence.PrePersist;
 public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     @Id
     @Column(columnDefinition = "varchar(36)")
-    private UUID id; //Provided.
+    UUID id; //Provided by client or generated if missing on create.
 
     private String query;  //JSON-API PATH or GraphQL payload.
 
     private QueryType queryType; //GRAPHQL, JSONAPI
 
+    @Transient
+    @Size(max=10)
+    Integer asyncAfterSeconds;
+
+    String requestId; //Client provided
+    
     @UpdatePermission(expression = "Principal is Owner AND value is Cancelled")
     private QueryStatus status;
 
@@ -53,6 +61,9 @@ public class AsyncQuery extends AsyncBase implements PrincipalOwned {
     @PrePersist
     public void prePersistStatus() {
         status = QueryStatus.QUEUED;
+        if(id == null) {
+        	id = UUID.randomUUID();
+        }
     }
 
     @Override

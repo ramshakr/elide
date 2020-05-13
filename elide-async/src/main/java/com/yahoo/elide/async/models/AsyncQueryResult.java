@@ -17,6 +17,7 @@ import lombok.Data;
 import java.util.UUID;
 
 import javax.persistence.Column;
+import javax.persistence.Embeddable;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
@@ -24,7 +25,7 @@ import javax.persistence.OneToOne;
 /**
  * Model for Async Query Result.
  */
-@Entity
+@Embeddable
 @Include(type = "asyncQueryResult")
 @ReadPermission(expression = "Principal is Owner")
 @UpdatePermission(expression = "Prefab.Role.None")
@@ -42,11 +43,15 @@ public class AsyncQueryResult extends AsyncBase implements PrincipalOwned {
 
     private Integer status; // HTTP Status
 
+    private ResultType resultType; 
+    
     @OneToOne
     private AsyncQuery query;
-
+    
     @Exclude
     public String getPrincipalName() {
         return query.getPrincipalName();
     }
 }
+
+
