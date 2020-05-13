@@ -37,7 +37,7 @@ import javax.persistence.Id;
 @EqualsAndHashCode
 @ToString
 @Data
-<%#if table%>@FromTable(name = "<%#if schema%><%schema%>.<%/if%><%table%>")<%/if%>
+<%#if table%>@FromTable(name = "<%#if schema%><%schema%>.<%/if%><%table%>")
 <%else if sql%>@FromSubquery(sql = "<%sql%>")
 <%/if%>
 <%#if readAccess%>@ReadPermission(expression = "<%readAccess%>")<%/if%>
