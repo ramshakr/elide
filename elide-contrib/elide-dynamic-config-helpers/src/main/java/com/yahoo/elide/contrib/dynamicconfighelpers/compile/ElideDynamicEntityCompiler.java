@@ -45,36 +45,32 @@ public class ElideDynamicEntityCompiler {
     /**
      * Parse dynamic config path.
      * @param path : Dynamic config hjsons root location
+     * @throws IOException 
      */
-    public ElideDynamicEntityCompiler(String path) {
+    public ElideDynamicEntityCompiler(String path) throws IOException {
 
         ElideTableConfig tableConfig = new ElideTableConfig();
         ElideSecurityConfig securityConfig = new ElideSecurityConfig();
         ElideConfigParser elideConfigParser = new ElideConfigParser(path);
         HandlebarsHydrator hydrator = new HandlebarsHydrator();
 
-        try {
 
-            tableConfig = elideConfigParser.getElideTableConfig();
-            securityConfig = elideConfigParser.getElideSecurityConfig();
-            tableClasses = hydrator.hydrateTableTemplate(tableConfig);
-            securityClasses = hydrator.hydrateSecurityTemplate(securityConfig);
+        tableConfig = elideConfigParser.getElideTableConfig();
+        securityConfig = elideConfigParser.getElideSecurityConfig();
+        tableClasses = hydrator.hydrateTableTemplate(tableConfig);
+        securityClasses = hydrator.hydrateSecurityTemplate(securityConfig);
 
-            for (Entry<String, String> entry : tableClasses.entrySet()) {
-                classNames.add(PACKAGE_NAME + entry.getKey());
-            }
-
-            for (Entry<String, String> entry : securityClasses.entrySet()) {
-                classNames.add(PACKAGE_NAME + entry.getKey());
-            }
-
-            compiler.useParentClassLoader(
-                    new ElideDynamicInMemoryClassLoader(ClassLoader.getSystemClassLoader(),
-                            Sets.newHashSet(classNames)));
-
-        } catch (IOException e) {
-            log.error("Unable to read Dynamic Configuration " + e.getMessage());
+        for (Entry<String, String> entry : tableClasses.entrySet()) {
+            classNames.add(PACKAGE_NAME + entry.getKey());
         }
+
+        for (Entry<String, String> entry : securityClasses.entrySet()) {
+            classNames.add(PACKAGE_NAME + entry.getKey());
+        }
+
+        compiler.useParentClassLoader(
+                new ElideDynamicInMemoryClassLoader(ClassLoader.getSystemClassLoader(),
+                        Sets.newHashSet(classNames)));
     }
 
     /**
