@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -36,7 +37,7 @@ public class ElideDynamicEntityCompiler {
     public static final String PACKAGE_NAME = "dynamicconfig.models.";
     private Map<String, Class<?>> compiledObjects;
 
-    private InMemoryJavaCompiler compiler = InMemoryJavaCompiler.newInstance();
+    private InMemoryJavaCompiler compiler = InMemoryJavaCompiler.newInstance().ignoreWarnings();
 
     private Map<String, String> tableClasses = new HashMap<String, String>();
     private Map<String, String> securityClasses = new HashMap<String, String>();
@@ -123,7 +124,8 @@ public class ElideDynamicEntityCompiler {
      * @return Set of Classes matching the annotation.
      * @throws ClassNotFoundException
      */
-    public Set<Class<?>> findAnnotatedClasses(Class annotationClass)
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	public Set<Class<?>> findAnnotatedClasses(Class annotationClass)
             throws ClassNotFoundException {
 
         Set<Class<?>> annotatedClasses = new HashSet<Class<?>>();
@@ -133,6 +135,29 @@ public class ElideDynamicEntityCompiler {
             Class<?> classz = getClassLoader().loadClass(dynamicClass);
             if (classz.getAnnotation(annotationClass) != null) {
                 annotatedClasses.add(classz);
+            }
+        }
+
+        return annotatedClasses;
+    }
+
+    /**
+     * Find classes with a particular annotation from dynamic compiler.
+     * @param annotationClass Annotation to search for.
+     * @return Set of Classes matching the annotation.
+     * @throws ClassNotFoundException
+     */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	public List<String> findAnnotatedClassNames(Class annotationClass)
+            throws ClassNotFoundException {
+
+        List<String> annotatedClasses = new ArrayList<String>();
+        ArrayList<String> dynamicClasses = classNames;
+
+        for (String dynamicClass : dynamicClasses) {
+            Class<?> classz = getClassLoader().loadClass(dynamicClass);
+            if (classz.getAnnotation(annotationClass) != null) {
+                annotatedClasses.add(classz.getName());
             }
         }
 
