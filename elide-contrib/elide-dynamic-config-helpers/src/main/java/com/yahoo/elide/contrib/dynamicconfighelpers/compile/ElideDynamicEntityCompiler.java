@@ -45,7 +45,7 @@ public class ElideDynamicEntityCompiler {
     /**
      * Parse dynamic config path.
      * @param path : Dynamic config hjsons root location
-     * @throws IOException 
+     * @throws IOException IOException thrown
      */
     public ElideDynamicEntityCompiler(String path) throws IOException {
 
@@ -53,7 +53,6 @@ public class ElideDynamicEntityCompiler {
         ElideSecurityConfig securityConfig = new ElideSecurityConfig();
         ElideConfigParser elideConfigParser = new ElideConfigParser(path);
         HandlebarsHydrator hydrator = new HandlebarsHydrator();
-
 
         tableConfig = elideConfigParser.getElideTableConfig();
         securityConfig = elideConfigParser.getElideSecurityConfig();
@@ -121,7 +120,7 @@ public class ElideDynamicEntityCompiler {
      * @throws ClassNotFoundException
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	public Set<Class<?>> findAnnotatedClasses(Class annotationClass)
+    public Set<Class<?>> findAnnotatedClasses(Class annotationClass)
             throws ClassNotFoundException {
 
         Set<Class<?>> annotatedClasses = new HashSet<Class<?>>();
@@ -144,7 +143,7 @@ public class ElideDynamicEntityCompiler {
      * @throws ClassNotFoundException
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	public List<String> findAnnotatedClassNames(Class annotationClass)
+    public List<String> findAnnotatedClassNames(Class annotationClass)
             throws ClassNotFoundException {
 
         List<String> annotatedClasses = new ArrayList<String>();
