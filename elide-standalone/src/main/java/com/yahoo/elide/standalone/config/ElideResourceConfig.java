@@ -152,20 +152,28 @@ public class ElideResourceConfig extends ResourceConfig {
             protected void configure() {
                 List<DocEndpoint.SwaggerRegistration> swaggerDocs = settings.enableSwagger();
                 if (!swaggerDocs.isEmpty()) {
+
+                    // Include the metadata models in swagger docs
+                    EntityDictionary dictionary = injector.getService(ElideSettings.class).getDictionary();
+
+                    Swagger swagger = setupSwagger(dictionary, settings.getJsonApiPathSpec(), "Metadata models");
+
+                    swaggerDocs.add(new DocEndpoint.SwaggerRegistration("metadata", swagger));
+
                     // Include the async models in swagger docs
                     if (settings.enableAsync()) {
-                        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+                        dictionary = new EntityDictionary(new HashMap<>());
                         dictionary.bindEntity(AsyncQuery.class);
                         dictionary.bindEntity(AsyncQueryResult.class);
 
-                        Swagger swagger = setupSwagger(dictionary, settings.getJsonApiPathSpec(), "Async Service");
+                        swagger = setupSwagger(dictionary, settings.getJsonApiPathSpec(), "Async Service");
 
                         swaggerDocs.add(new DocEndpoint.SwaggerRegistration("async", swagger));
                     }
 
                     // bind dynamic models
                     if (settings.enableDynamicModelConfig()) {
-                        EntityDictionary dictionary = new EntityDictionary(new HashMap<>());
+                        dictionary = new EntityDictionary(new HashMap<>());
                         try {
                             for (Class entity : optionalCompiler.get().findAnnotatedClasses(Entity.class)) {
                                 dictionary.bindEntity(entity);
@@ -174,7 +182,7 @@ public class ElideResourceConfig extends ResourceConfig {
                             log.error("error while binding class");
                         }
 
-                        Swagger swagger = setupSwagger(dictionary, settings.getJsonApiPathSpec(),
+                        swagger = setupSwagger(dictionary, settings.getJsonApiPathSpec(),
                                 "Dynamic models Service");
 
                             swaggerDocs.add(new DocEndpoint.SwaggerRegistration("dynamic", swagger));
